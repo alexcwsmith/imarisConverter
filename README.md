@@ -15,14 +15,14 @@ python3 ACWS_convertImaris.py --directory=pathToDirectory --nthreads=12
 ```
 import ACWS_convertImaris as conv
 im = conv.IMStoTIF('yourFilePathHere', save=False)
-#example now process with a medial filter:
+#example now process with a median filter:
 from scipy.signal import medfilt
 im_medfilt = medfilt(im, kernel_size=3)
 from skimage.io import imsave
 imsave('pathToSaveFileTo.tif', im_medilt, bigtiff=True)
 ```
 
-Here's an example, converting multiple images in a directory with multiprocessing: 
+For full clarity, here's an example converting all .ims files in a directory with multiprocessing: 
 <img width="1440" alt="ConvertWholeDirectory" src="https://user-images.githubusercontent.com/47009665/111088221-813fd000-84fc-11eb-9731-aabd4825cfcf.png">
 
 
