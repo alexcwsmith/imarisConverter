@@ -1,5 +1,5 @@
 # imarisConverter
-Convert .ims to .tif files, either one at a time, or full an entire directory.
+Convert .ims to .tif files, either one at a time, or for an entire directory.
 
 There are three primary modes to use this:
 
