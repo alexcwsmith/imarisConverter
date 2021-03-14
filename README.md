@@ -21,4 +21,4 @@ im_medfilt = medfilt(im, kernel_size=3)
 from skimage.io import imsave
 imsave('pathToSaveFileTo.tif', im_medilt, bigtiff=True)
 ```
-Feel free to file issues with any bugs, or email me directly.
+Feel free to file issues with any bugs, or email me directly. Pull requests also welcome for additional features!
