@@ -2,3 +2,4 @@ h5py==3.1.0
 pathos==0.2.7
 scikit-image==0.18.1
 numpy~=1.18.1
+scipy~=1.6.0
