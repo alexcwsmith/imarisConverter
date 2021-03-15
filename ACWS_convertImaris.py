@@ -19,20 +19,28 @@ def IMStoTIF(filePath, save=True):
     print("Started at " + str(time.ctime()))
     if isinstance(filePath, argparse.Namespace):
         save = filePath.save
+        channel = filePath.channel
         filePath = filePath.file
-        print("Running on file" + filePath)
     name, ext = os.path.splitext(filePath)
     if ext != '.ims':
-        raise TypeError('Input filePath must be .ims file')      
+        raise TypeError('Input filePath must be .ims file')   
+    if name.endswith('.ome'):
+        name = name.strip('.ome')
+        ext = '.ome.ims'
     file = h5py.File(filePath, 'a')
     im = file.get('DataSet')
     res0 = im.get('ResolutionLevel 0')
     time0 = res0.get('TimePoint 0')
-    auto = time0.get('Channel 0')
+    if len(list(time0.keys()))>1:
+        if channel is not None:
+            print("Multiple channels detected. Proceeding with channel " + str(channel))
+        elif not channel:
+            channel = input("Multiple channels detected. Input channel to process: ")
+    auto = time0.get('Channel ' + str(channel))
     stack = auto.get('Data')
     if save:
-        print("Converting & Saving " + name + ".tif")
-        imsave(name + '.tif', np.array(stack), bigtiff=True)
+        print("Converting " + name + " channel" + str(channel) + " from .ims to .tif")
+        imsave(name + "_C" + str(channel) + '.tif', np.array(stack), bigtiff=True)
         print('Completed at ' + str(time.ctime()))
     if not save:
         return(np.array(stack))
@@ -71,12 +79,13 @@ def multiprocessIMStoTIF(args):
     print('Completed at ' + str(time.ctime()))
 
 
-if __name__ =='__main__':
+if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('--file',type=str,default=os.getcwd())
     p.add_argument('--save',type=bool,default=True)
     p.add_argument('--directory',type=str,default=None)
     p.add_argument('--nthreads',type=int,default=8)
+    p.add_argument('--channel',type=int,default=0)
     args = p.parse_args()
     if args.directory == None:
         IMStoTIF(args)
