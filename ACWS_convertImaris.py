@@ -19,8 +19,11 @@ def IMStoTIF(filePath, save=True):
     print("Started at " + str(time.ctime()))
     if isinstance(filePath, argparse.Namespace):
         save = filePath.save
-        channel = filePath.channel
-        if int(channel)==0:
+        if filePath.channel:
+            channel = filePath.channel
+            if isinstance(channel, str):
+                channel = int(channel)
+        elif not filePath.channel:
             channel=0
         if filePath.downsample:
             reslevel = str(filePath.downsample)
@@ -29,11 +32,11 @@ def IMStoTIF(filePath, save=True):
         filePath = filePath.file
     name, ext = os.path.splitext(filePath)
     if ext != '.ims':
-        raise TypeError('Input filePath must be .ims file')   
+        raise TypeError('Input filePath must be .ims file')
     if name.endswith('.ome'):
         name = name.strip('.ome')
         ext = '.ome.ims'
-    file = h5py.File(filePath, 'a')
+    file = h5py.File(filePath, 'r')
     im = file.get('DataSet')
     if str(reslevel) != '0':
         print("Retrieving downsampled data at resolution level " + str(reslevel))
@@ -101,12 +104,13 @@ def multiprocessIMStoTIF(args):
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
-    p.add_argument('--file',type=str,default=os.getcwd())
-    p.add_argument('--save',type=bool,default=True)
-    p.add_argument('--channel',type=str,default=None)
-    p.add_argument('--downsample',type=int,default=None)
-    p.add_argument('--directory',type=str,default=None)
-    p.add_argument('--nthreads',type=int,default=8)
+    p.add_argument('--file',type=str,default=os.getcwd(),help='Specify path to .ims file')
+    p.add_argument('--save',type=bool,default=True,help='Specify whether to save or return result. Default True')
+    p.add_argument('--channel',type=int,default=None,help='If a multiple-channel .ims file, specify 0-indexed channel number to extract. Default None')
+    p.add_argument('--downsample',type=int,default=None,help='Downsampling factor for data extraction. Default None.')
+    p.add_argument('--directory',type=str,default=None,help='If you want to convert all .ims files in a directory, specify path to directory here')
+    p.add_argument('--nthreads',type=int,default=8,help='Number of threads for multiprocessing when using --directory flag. \
+                   This will be the number of files that are processed at once. Beware of the memory footprint of each thread! ')
     args = p.parse_args()
     if args.directory == None:
         IMStoTIF(args)
