@@ -7,7 +7,7 @@ There are three primary modes to use this:
 ```
 python3 ACWS_convertImaris.py --file=yourFileName --save=true
 ```
-* Convert & save all files in directory (command line; be careful of memory of each thread):
+* Convert & save all files in directory (command line; be careful of memory footprint of each thread):
 ```
 python3 ACWS_convertImaris.py --directory=pathToDirectory --nthreads=12
 ```
