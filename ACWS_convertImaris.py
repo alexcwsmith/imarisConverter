@@ -56,8 +56,13 @@ def multiprocessIMStoTIF(args):
     files = os.listdir(str(args.directory))
     queue = []
     for f in files:
+        name, ext = os.path.splitext(f)
         if f.endswith('.ims'):
-            queue.append(f)
+            if not os.path.exists(name + '.tif'):
+                queue.append(f)
+    if len(queue)==0:
+        print("No unprocessed files in directory.")
+        return(files)
     os.chdir(str(args.directory))
     pool = ProcessPool(nodes=processes)
     pool.map(_IMStoTIF, queue)
