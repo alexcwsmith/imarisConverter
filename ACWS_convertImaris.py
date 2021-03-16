@@ -67,6 +67,10 @@ def IMStoTIF(filePath, save=True):
         maxy = bounds[1].max()
         minx = bounds[2].min()
         maxx = bounds[2].max()
+        if miny-pad<0:
+            miny = miny+pad
+        if minx-pad<0:
+            minx = minx+pad
         array_crop = array[minz:maxz, int(miny-pad):int(maxy+pad), int(minx-pad):int(maxx+pad)]
         print("Downsampled image data from original " + str(rawshape) + " to " + str(array_crop.shape))
     if save:
