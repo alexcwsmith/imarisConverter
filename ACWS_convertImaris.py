@@ -29,6 +29,7 @@ def IMStoTIF(filePath, save=True):
             reslevel = str(filePath.downsample)
         elif not filePath.downsample:
             reslevel=0
+        pad = int(filePath.pad)
         filePath = filePath.file
     name, ext = os.path.splitext(filePath)
     if ext != '.ims':
@@ -49,24 +50,42 @@ def IMStoTIF(filePath, save=True):
             channel = input("Multiple channels detected but no --channel argument given. Input channel to process: ")
     fluo = time0.get('Channel ' + str(channel))
     stack = fluo.get('Data')
+    if reslevel:
+        raw = im.get('ResolutionLevel 0')
+        rawt = raw.get('TimePoint 0')
+        rawf = rawt.get('Channel 0')
+        rawshape = rawf.get('Data').shape
+        array = np.array(stack)
+        array_mid = array[int(array.shape[0]/2),int(array.shape[1]/2),:int(array.shape[2]/2)]
+        array_min = (array-int(array_mid.min())).astype(np.int16)
+        array_min[array_min<0]=0
+        array_min=array_min.astype(np.uint16)
+        bounds = np.nonzero(array_min)
+        minz = bounds[0].min()
+        maxz = bounds[0].max()
+        miny = bounds[1].min()
+        maxy = bounds[1].max()
+        minx = bounds[2].min()
+        maxx = bounds[2].max()
+        array_crop = array[minz:maxz, int(miny-pad):int(maxy+pad), int(minx-pad):int(maxx+pad)]
+        print("Downsampled image data from original " + str(rawshape) + " to " + str(array_crop.shape))
     if save:
+        print("Converting " + name + " channel " + str(channel) + " from .ims to .tif")
         if not reslevel:        
-            print("Converting " + name + " channel" + str(channel) + " from .ims to .tif")
             if not channel:
-                imsave(name + '_C0.tif', np.array(stack), bigtiff=True)
+                imsave(name + '_C0.tif', np.array(stack), check_contrast=False, bigtiff=True)
             elif channel:
-                imsave(name + "_C" + str(channel) + '.tif', np.array(stack), bigtiff=True)
+                imsave(name + "_C" + str(channel) + '.tif', np.array(stack), check_contrast=False, bigtiff=True)
             print('Completed at ' + str(time.ctime()))
         elif reslevel:
-            print("Converting " + name + " channel" + str(channel) + " from .ims to .tif. Downsampled at res level " + str(reslevel))
             if not channel:
-                imsave(name + '_C0_ResLevel' + str(reslevel) + '.tif', np.array(stack), bigtiff=True)
+                imsave(name + '_C0_ResLevel' + str(reslevel) + '.tif', array_crop, check_contrast=False, bigtiff=True)
             elif channel:
-                imsave(name + "_C" + str(channel) + '_ResLevel' + str(reslevel) + '.tif', np.array(stack), bigtiff=True)
+                imsave(name + "_C" + str(channel) + '_ResLevel' + str(reslevel) + '.tif', array_crop, check_contrast=False, bigtiff=True)
             print('Completed at ' + str(time.ctime()))
-
-    if not save:
+    elif not save:
         return(np.array(stack))
+
 
 def _IMStoTIF(filePath):
     name, ext = os.path.splitext(filePath)
@@ -104,13 +123,15 @@ def multiprocessIMStoTIF(args):
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
-    p.add_argument('--file',type=str,default=os.getcwd(),help='Specify path to .ims file')
-    p.add_argument('--save',type=bool,default=True,help='Specify whether to save or return result. Default True')
+    p.add_argument('--file',type=str,default=os.getcwd(),help='Path to .ims file')
     p.add_argument('--channel',type=int,default=None,help='If a multiple-channel .ims file, specify 0-indexed channel number to extract. Default None')
     p.add_argument('--downsample',type=int,default=None,help='Downsampling factor for data extraction. Default None.')
+    p.add_argument('--pad',type=int,default=0,help='Amount to pad downsampled images in XY dims, in pixels. Default 0.')
     p.add_argument('--directory',type=str,default=None,help='If you want to convert all .ims files in a directory, specify path to directory here')
     p.add_argument('--nthreads',type=int,default=8,help='Number of threads for multiprocessing when using --directory flag. \
-                   This will be the number of files that are processed at once. Beware of the memory footprint of each thread! ')
+                   This will be the number of files that are processed at once. \
+                       Beware of the memory footprint of each thread, especially if not downsampling.')
+    p.add_argument('--save',type=bool,default=True,help='Whether to save or return result. Default True to save image. Set False to return array for further processing.')
     args = p.parse_args()
     if args.directory == None:
         IMStoTIF(args)
