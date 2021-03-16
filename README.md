@@ -14,26 +14,31 @@ python3 ACWS_convertImaris.py --help
 ```
 Which will print:
 ```
-usage: ACWS_convertImaris.py [-h] [--file FILE] [--save SAVE]
-                             [--channel CHANNEL] [--downsample DOWNSAMPLE]
+usage: ACWS_convertImaris.py [-h] [--file FILE] [--channel CHANNEL]
+                             [--downsample DOWNSAMPLE] [--pad PAD]
                              [--directory DIRECTORY] [--nthreads NTHREADS]
+                             [--save SAVE]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --file FILE           Specify path to .ims file
-  --save SAVE           Specify whether to save or return result. Default True
+  --file FILE           Path to .ims file
   --channel CHANNEL     If a multiple-channel .ims file, specify 0-indexed
                         channel number to extract. Default None
   --downsample DOWNSAMPLE
                         Downsampling factor for data extraction. Default None.
+  --pad PAD             Amount to pad downsampled images in XY dims, in
+                        pixels. Default 0.
   --directory DIRECTORY
                         If you want to convert all .ims files in a directory,
                         specify path to directory here
   --nthreads NTHREADS   Number of threads for multiprocessing when using
                         --directory flag. This will be the number of files
                         that are processed at once. Beware of the memory
-                        footprint of each thread!
-
+                        footprint of each thread, especially if not
+                        downsampling.
+  --save SAVE           Whether to save or return result. Default True to save
+                        image. Set False to return array for further
+                        processing.
 ```
 It's worth nothing that everything here is 0-indexed, whereas I believe Imaris is 1-indexed. So channels 1 & 2 in imaris would be 0 & 1 here, respectively.
 
